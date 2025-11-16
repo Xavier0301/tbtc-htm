@@ -8,14 +8,9 @@
 #include "math.h"
 
 #include "types.h"
-#include "tensor.h"
-#include "array.h"
-#include "location.h"
-#include "interfaces.h"
-#include "sparse.h"
 #include "feature_layer.h"
 #include "segment.h"
-
+#include "htm.h"
 #include "bitarray.h"
 
 typedef struct output_layer_params_t_ {
@@ -25,20 +20,8 @@ typedef struct output_layer_params_t_ {
     u8 external_context_segments;
     u8 context_segments;
 
-    u8 feedforward_permanence_threshold;
-    u8 context_permanence_threshold;
-
-    u8 feedforward_activation_threshold;
-    u8 context_activation_threshold;
-
-    u8 min_active_cells;
-
-    u8 segment_spiking_threshold;
-
-    u8 perm_increment;
-    u8 perm_decrement;
-    u8 perm_decay; // how much to decay predicted but inactive cells 
-    // TODO: maybe add a decay period?
+    htm_params_t htm;
+    extended_htm_params_t extended_htm;
 } output_layer_params_t;
 
 

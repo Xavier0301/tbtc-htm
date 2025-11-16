@@ -8,12 +8,8 @@
 #include "math.h"
 
 #include "types.h"
-#include "tensor.h"
-#include "array.h"
-#include "grid_environment.h"
 #include "location.h"
 #include "interfaces.h"
-#include "location_module.h"
 
 #include "output_layer.h"
 #include "feature_layer.h"

@@ -10,6 +10,8 @@
         "grid_cell_2d.h": "c",
         "feature_layer.h": "c",
         "bitset": "c",
-        "unordered_map": "c"
+        "unordered_map": "c",
+        "location_layer.h": "c",
+        "array.h": "c"
     }
 }

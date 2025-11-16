@@ -15,14 +15,16 @@ void init_learning_module(
 ) {
     init_output_layer(&lm->output_net, l3_params, l4_params);
     init_feature_layer(&lm->feature_net, l4_params, l6_params);
-    init_location_layer(&lm->location_net, l6_params);
+    init_location_layer(&lm->location_net, l6_params, l4_params);
 }
 
 void learning_module_step(learning_module* lm, features_t features, vec2d movement) {
-    location_layer_move(&lm->location_net, movement);
+    location_layer_predict(&lm->location_net, &lm->feature_net);
+    location_layer_activate(&lm->location_net, movement, &lm->feature_net);
 
     feature_layer_predict(&lm->feature_net, &lm->location_net);
     feature_layer_activate(&lm->feature_net, features.active_columns, &lm->location_net);
 
+    output_layer_predict(&lm->output_net);
     output_layer_activate(&lm->output_net, &lm->feature_net);
 }

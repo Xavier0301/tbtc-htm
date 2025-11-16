@@ -8,13 +8,7 @@
 #include "math.h"
 
 #include "types.h"
-#include "tensor.h"
-#include "array.h"
-#include "location.h"
-#include "interfaces.h"
-#include "sparse.h"
 
-#include "bitarray.h"
 
 // ----- OUTPUT LAYER -----
 
@@ -42,9 +36,8 @@ typedef struct __attribute__((packed)) feature_index_ {
 
 // u24
 typedef struct __attribute__((packed)) location_index_ {
-    u8 module;
-    u8 cell_x;
-    u8 cell_y;
+    u16 col;
+    u8 cell;
 } location_index;
 
 // ----- ABSTRACT SEGMENT -----
@@ -54,6 +47,13 @@ union cell_index {
     external_output_index external_output;
     feature_index feature;
     location_index location;
+};
+
+enum segment_index_type {
+    INTERNAL_OUTPUT_INDEX_TYPE,
+    EXTERNAL_OUTPUT_INDEX_TYPE,
+    FEATURE_INDEX_TYPE,
+    LOCATION_INDEX_TYPE
 };
 
 // u32

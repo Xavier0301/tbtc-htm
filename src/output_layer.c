@@ -115,12 +115,12 @@ void output_layer_predict(output_layer_t* net) {
                 internal_output_index index = seg_data.index.internal_output;
 
                 u32 cell_is_active = GET_BIT_FROM_PACKED32(net->active, index.cell);
-                u32 cell_is_connected = seg_data.permanence >= net->p.context_permanence_threshold;
+                u32 cell_is_connected = seg_data.permanence >= net->p.extended_htm.context_permanence_threshold;
 
                 seg_accumulator += cell_is_active && cell_is_connected;
             }
 
-            u32 segment_is_spiking = seg_accumulator >= net->p.segment_spiking_threshold;
+            u32 segment_is_spiking = seg_accumulator >= net->p.htm.segment_spiking_threshold;
             if(seg_accumulator > 255) seg_accumulator = 255;
             ctx_segments_pointer->connection_count = seg_accumulator;
 
@@ -153,7 +153,7 @@ void output_layer_activate(output_layer_t* net, feature_layer_t* feature_net) {
     // get the exact value of the cell with k-th best context support
     u16 kth_largest = find_kth_largest_from_counts(
         net->prediction_score_counts, 
-        net->p.context_segments, net->p.min_active_cells
+        net->p.context_segments, net->p.extended_htm.min_active_cells
     );
 
     // 2. determine the active cells, those that have enough ffw support 
@@ -171,13 +171,13 @@ void output_layer_activate(output_layer_t* net, feature_layer_t* feature_net) {
             feature_index index = seg_data.index.feature; 
 
             u32 cell_is_active = GET_BIT(feature_net->active[index.col], index.cell);
-            u32 cell_is_connected = seg_data.permanence >= net->p.feedforward_permanence_threshold;
+            u32 cell_is_connected = seg_data.permanence >= net->p.extended_htm.feedforward_permanence_threshold;
 
             cell_response += cell_is_active && cell_is_connected;
         }
 
         if(
-            cell_response >= net->p.feedforward_activation_threshold &&
+            cell_response >= net->p.extended_htm.feedforward_activation_threshold &&
             net->prediction_scores[cell] >= kth_largest
         ) {
             SET_BIT_IN_PACKED32(net->active, cell);
@@ -188,7 +188,7 @@ void output_layer_activate(output_layer_t* net, feature_layer_t* feature_net) {
         ffw_segments_pointer += 1;
     }
 
-    // TODO 3. Learn context connections       
+    // 3. Learn context connections       
 
     segment_t* ctx_segments_pointer = net->in_segments.context;
     
@@ -203,7 +203,7 @@ void output_layer_activate(output_layer_t* net, feature_layer_t* feature_net) {
             ctx_segments_pointer += net->p.context_segments;
         } else {
             for(u32 seg = 0; seg < net->p.internal_context_segments; ++seg) {
-                u32 seg_was_spiking = ctx_segments_pointer->connection_count >= net->p.segment_spiking_threshold;
+                u32 seg_was_spiking = ctx_segments_pointer->connection_count >= net->p.htm.segment_spiking_threshold;
 
                 u32 should_reinforce = cell_is_active && cell_is_predicted && seg_was_spiking;
 
@@ -218,12 +218,12 @@ void output_layer_activate(output_layer_t* net, feature_layer_t* feature_net) {
                         if(incident_cell_was_active) {
                             seg_data->permanence = safe_add_u8(
                                 seg_data->permanence, 
-                                net->p.perm_increment
+                                net->p.htm.perm_increment
                             );
                         } else {
                             seg_data->permanence = safe_sub_u8(
                                 seg_data->permanence, 
-                                net->p.perm_decrement
+                                net->p.htm.perm_decrement
                             );
                         }
                     }

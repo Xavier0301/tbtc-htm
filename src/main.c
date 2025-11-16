@@ -52,16 +52,25 @@ int main(int argc, char *argv[]) {
     features_t f;
     init_features(&f, sm.pooler.params.num_minicols, sm.pooler.params.top_k);
 
-    //     u16 cols;
-    // u16 log_cells_per_col; // cells_per_col has to be a power of 2, also <= 32 i.e. log(cells_per) is max 5
-    // u8 segments;
+    htm_params_t htm_params = (htm_params_t) {
+        .permanence_threshold = REPR_u8(0.5),
+        .segment_spiking_threshold = 15,
 
-    // u8 permanence_threshold;
-    // u8 segment_depolarization_threshold;
+        .perm_increment = REPR_u8(0.06f),
+        .perm_decrement = REPR_u8(0.04f),
+        .perm_decay = 1 // 1/256, the smallest possible non-zero decay
+    };
 
-    // u8 perm_increment;
-    // u8 perm_decrement;
-    // u8 perm_decay;
+    extended_htm_params_t ext_htm_params = (extended_htm_params_t) {
+        .feedforward_permanence_threshold = REPR_u8(0.5),
+        .context_permanence_threshold = REPR_u8(0.5),
+
+        .feedforward_activation_threshold = 3,
+        .context_activation_threshold = 18,
+
+        .min_active_cells = 10,
+    };
+ 
     learning_module lm;
     init_learning_module(
         &lm, 
@@ -70,20 +79,10 @@ int main(int argc, char *argv[]) {
 
             .internal_context_segments = 10,
             .external_context_segments = 0,
-            .context_segments = 10, // segments per cell
-
-            .feedforward_permanence_threshold = REPR_u8(0.5),
-            .context_permanence_threshold = REPR_u8(0.5),
-            .segment_spiking_threshold = 15,
-
-            .feedforward_activation_threshold = 3,
-            .context_activation_threshold = 18,
-
-            .min_active_cells = 10,
-
-            .perm_increment = REPR_u8(0.06f),
-            .perm_decrement = REPR_u8(0.04f),
-            .perm_decay = 1 // 1/256, the smallest possible non-zero decay
+            .context_segments = 10,
+            
+            .htm = htm_params,
+            .extended_htm = ext_htm_params
         }, 
         (feature_layer_params_t) {
             .cols = num_cols,
@@ -91,23 +90,24 @@ int main(int argc, char *argv[]) {
 
             .feature_segments = 5,
             .location_segments = 5,
-            .segments = 10, // segments per cell
 
-            .permanence_threshold = REPR_u8(0.5),
-            .segment_spiking_threshold = 15,
-
-            .perm_increment = REPR_u8(0.06f),
-            .perm_decrement = REPR_u8(0.04f),
-            .perm_decay = 1 // 1/256, the smallest possible non-zero decay
+            .htm = htm_params
         },
         (location_layer_params_t) {
-            .modules = 10,
-            .module_params = calloc(10, sizeof(location_module_params_t))
+            .cols = 1024,
+            .log_cols_sqrt = (u32) log2(sqrt(1024)), // 5
+            .cells = 10,
+
+            .location_segments = 5,
+            .feature_segments = 5,
+
+            .log_scale = (uvec2d) { .x = 0, .y = 0 },
+
+            .htm = htm_params
         }
     );
 
     vec2d movement = { .x = 0, .y = 0 };
-    location_layer_activate(&lm.location_net, agent_location); 
 
     print_grid(&env);
 
