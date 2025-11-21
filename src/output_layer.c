@@ -91,7 +91,7 @@ void init_output_layer(output_layer_t* net, output_layer_params_t p, feature_lay
 
 u16 find_kth_largest_from_counts(u16* counts, u32 num_counts, u32 k) {
     u32 elements_seen = 0;
-    for (u32 i = num_counts; i >= 0; --i) {
+    for (i32 i = num_counts; i >= 0; --i) {
         if(counts[i] > 0) {
             elements_seen += counts[i];
             if (elements_seen >= k) {
